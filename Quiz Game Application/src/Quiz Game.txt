@@ -1,0 +1,93 @@
+The game consists of a set of multiple-choice questions.
+
+For each question, the following steps happen:
+The question is displayed along with four answer options (A, B, C, D).
+A countdown timer of 10 seconds is shown to allow the player to think.
+The player provides an answer by selecting one of the options.
+If the answer is correct, the player gets +1 point.
+If the answer is wrong, the player gets 0 point.
+After all questions are answered, the final score is displayed.
+
+
++----------------------+----------------------+
+| Feature              | Method               |
++----------------------+----------------------+
+| Store Questions      | getJavaQuestions()   |
+| Display Question     | displayQuestion()    |
+| Countdown Timer      | countdownTimer()     |
+| Get User Input       | getUserAnswer()      |
+| Check Answer         | checkAnswer()        |
+| Update Score         | updateScore()        |
+| Final Score Display  | playQuiz()           |
++----------------------+----------------------+
+
+                          +------------------+
+                          |      Main         |
+                          |  (playQuiz())     |
+                          +---------+---------+
+                                    |
+              +---------------------+---------------------+
+              |                                           |
+    +---------v---------+                       +---------v---------+
+    |   QuestionStore   |                       |   UI / Console    |
+    | getJavaQuestions()|                       | displayQuestion(),|
+    | createQuestion()  |                       | getUserAnswer()   |
+    +---------+---------+                       +---------+---------+
+              |                                           |
+   +----------v-----------+                 +-------------v-------------+
+   |   Quiz Engine / Loop  |<---iterates----|     Timer (countdown)     |
+   |  (shuffle, iterate)   |                 | countdownTimer()         |
+   |  checkAnswer(), score |                 +--------------------------+
+   +----------+-----------+
+              |
+    +---------v----------+
+    |   Score Manager     |
+    | updateScore(), show |
+    +---------------------+
+
+    Main -> QuestionStore: load & shuffle questions
+    Main -> QuizEngine: start loop
+    QuizEngine -> UI: displayQuestion(q)
+    QuizEngine -> Timer: start countdown (10s)
+    Timer -> UI: prints remaining seconds (every sec)
+    UI -> QuizEngine: user enters answer (A/B/C/D)
+    QuizEngine -> ScoreManager: checkAnswer(user, q.correct)
+    ScoreManager -> QuizEngine: returns result (0/1)
+    QuizEngine -> ScoreManager: updateScore(score, result)
+    QuizEngine -> Main: next loop / finish -> showFinalScore
+
+    SRP  — Single Responsibility Principle
+      Each function has one job:
+        getJavaQuestions() -> data
+        displayQuestion()   -> presentation
+        countdownTimer()    -> timing
+        checkAnswer()/updateScore() -> scoring
+      → Easier to change timer or scoring independently.
+
+    SoC  — Separation of Concerns
+      Data (questions) kept separate from UI and from scoring/timer logic.
+
+    Encapsulation
+      Questions are represented as arrays (could be a class later) and accessed only via factory method createQuestion().
+
+    DRY  — Don’t Repeat Yourself
+      createQuestion() centralizes question construction; checkAnswer() centralizes correctness logic.
+
+    Fail-fast / Defensive input
+      getUserAnswer() validates input (returns null on invalid), and checkAnswer() handles null safely.
+
+    Open/Closed (partially)
+      Code is easy to extend by adding questions or new checks without modifying core loop.
+
+
+method → principle / pattern
+
+getJavaQuestions()     -> DRY (central source), YAGNI (simple)
+createQuestion()       -> Tiny Factory (Present), DRY
+displayQuestion()      -> SoC (presentation), could be View in MVC
+countdownTimer()       -> Utility (single responsibility ideally)
+getUserAnswer()        -> SoC (input handling), Suggest validation module
+checkAnswer()          -> SRP violation if extended; candidate for Strategy
+updateScore()          -> Small pure function (good), could be in ScoreManager
+playQuiz()             -> Controller / procedural orchestrator
+main()                 -> bootstrapper, good
